@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "job",
-    "slug": "job",
+    "name": "RecruitmentApp",
+    "slug": "RecruitmentApp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
