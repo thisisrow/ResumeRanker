@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload Resume</title>
+</head>
+<body>
+  <form id="upload-form">
+    <input type="file" id="resume" name="resume" accept=".pdf" required />
+    <button type="submit">Upload Resume</button>
+  </form>
+  <h1>Resume</h1>
+
+  <!-- Use iframe to display PDF -->
+  <iframe id="pdf-viewer" width="600" height="800"></iframe>
+  
+  <h1>Extract text </h1>
+  <p id="dec"></p>
+  <script>
+    const form = document.getElementById('upload-form');
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const userId = '67ae20c934a727dea686ce24';  // User ID you want to upload the resume for
+      const resumeFile = document.getElementById('resume').files[0];
+      
+      const formData = new FormData();
+      formData.append('resume', resumeFile);
+
+      try {
+        const response = await fetch(`http://localhost:8081/api/jobseeker/uploadResume/67ae20c934a727dea686ce24`, {
+          method: 'POST',
+          body: formData
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+          alert('Resume uploaded successfully!');
+        } else {
+          alert('Error: ' + result.message);
+        }
+      } catch (error) {
+        alert('Error uploading resume: ' + error.message);
+      }
+    });
+  </script>
+
+<script>
+    const userId = '67ae20c934a727dea686ce24'; // Replace with the user ID
+    const resumeUrl = `http://localhost:8081/api/jobseeker/getResume/67ae20c934a727dea686ce24`;
+
+    const iframe = document.getElementById('pdf-viewer');
+    iframe.src = resumeUrl; // Set the src to the API endpoint serving the PDF
+
+
+  </script>
+<script>
+    async function getDescription(userId) {
+      try {
+        // Call the backend to get the description
+        const response = await fetch(`http://localhost:8081/api/jobseeker/getDescription/67ae20c934a727dea686ce24`);
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch description');
+        }
+
+        const data = await response.json();
+        const description = data.description || 'No description available';
+
+        // Update the text content of the <p> tag
+        document.getElementById('dec').textContent = description;
+      } catch (error) {
+        console.error(error);
+        document.getElementById('dec').textContent = 'Error fetching description';
+      }
+    }
+
+    getDescription(userId);
+  </script>
+</body>
+</html>
