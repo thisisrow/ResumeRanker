@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const postSchema = new mongoose.Schema({
+const jobSchema = new mongoose.Schema({
   recruiter_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Recruiter",
@@ -11,5 +11,5 @@ const postSchema = new mongoose.Schema({
   created_at: { type: Date, default: Date.now },
 });
 
-const Post = mongoose.model("Post", postSchema);
-module.exports = Post;
+const Job = mongoose.model("Job", jobSchema);
+module.exports = Job;

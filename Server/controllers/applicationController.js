@@ -42,13 +42,10 @@ const getApplicationsByJob = async (req, res) => {
 const getApplicationsByJobSeeker = async (req, res) => {
   try {
     const { job_seeker_id } = req.params;
-    console.log('Searching for applications with job_seeker_id:', job_seeker_id);
     
     const applications = await Application.find({ job_seeker_id })
       .select("job_id resume_url status created_at")  // Include job_id in select
       .lean();  // Convert to plain JavaScript object
-
-    console.log('Found applications:', applications);
 
     if (!applications || applications.length === 0) {
       return res.status(404).json({ message: "No applications found for this job seeker." });
@@ -59,7 +56,6 @@ const getApplicationsByJobSeeker = async (req, res) => {
     if (error.name === 'CastError') {
       return res.status(400).json({ message: "Invalid job seeker ID format." });
     }
-    console.error('Error:', error);  // Add this for debugging
     res.status(500).json({ message: "Server error.", error: error.message });
   }
 };

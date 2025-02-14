@@ -5,7 +5,7 @@ const morgan = require("morgan");
 const connectDB = require("./config/db");
 const recruiterRoutes = require("./routes/recruiterRoutes");
 const jobseekerRoutes = require("./routes/jobseekerRoutes");
-const postRoutes = require("./routes/postRoutes");
+const jobRoutes = require("./routes/jobRoutes");
 const applicationRoutes =require("./routes/applicationRoutes")
 
 //DOTENV
@@ -26,7 +26,7 @@ app.use("/uploads", express.static("uploads"));
 //ROUTES
 app.use("/api/recruiter", recruiterRoutes);
 app.use("/api/jobseeker", jobseekerRoutes);
-app.use("/api/post", postRoutes);
+app.use("/api/job", jobRoutes);
 app.use("/api/application", applicationRoutes);
 app.use("/uploads", express.static("uploads"));
 
