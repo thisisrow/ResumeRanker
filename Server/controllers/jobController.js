@@ -25,25 +25,32 @@ exports.getAllRecruiterJobs = async (req, res) => {
 
 // Create a new post with recruiter validation
 exports.createJob = async (req, res) => {
-    const { recruiter_id, title, description } = req.body;
+    const { recruiter_id, company_name, title, description } = req.body;
   
     try {
-      // Validate recruiter ID
-      if (!mongoose.Types.ObjectId.isValid(recruiter_id)) {
-        return res.status(400).json({ message: "Invalid recruiter ID" });
+      // Check if recruiter_id exists and is not empty
+      if (!recruiter_id) {
+        return res.status(400).json({ message: "Recruiter ID is required" });
       }
-  
-      const recruiterExists = await Recruiter.findById(recruiter_id);
+
+      // Find the recruiter first
+      const recruiterExists = await Recruiter.findOne({ _id: recruiter_id });
       if (!recruiterExists) {
         return res.status(404).json({ message: "Recruiter not found" });
       }
       
-      const job = new Job({ recruiter_id, title, description });
+      const job = new Job({ 
+        recruiter_id,
+        company_name, 
+        title, 
+        description 
+      });
+      
       const newJob = await job.save();
       res.status(201).json(newJob);
     } catch (error) {
       console.error("Error creating job:", error);
-      res.status(500).json({ message: "Failed to create job" });
+      res.status(500).json({ message: "Failed to create job", error: error.message });
     }
 };
   
@@ -54,7 +61,7 @@ exports.updateJob = async (req, res) => {
   
     try {
       if (!mongoose.Types.ObjectId.isValid(id)) {
-        return res.status(400).json({ message: "Invalid post ID" });
+        return res.status(400).json({ message: "Invalid job ID" });
       }
   
       const updatedJob = await Job.findByIdAndUpdate(
@@ -80,7 +87,7 @@ exports.deleteJob = async (req, res) => {
   
     try {
       if (!mongoose.Types.ObjectId.isValid(id)) {
-        return res.status(400).json({ message: "Invalid post ID" });
+        return res.status(400).json({ message: "Invalid job ID" });
       }
   
       const deletedJob = await Job.findByIdAndDelete(id);
@@ -101,7 +108,7 @@ exports.getJobDescription = async (req, res) => {
     
     try {
         if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ message: "Invalid post ID" });
+            return res.status(400).json({ message: "Invalid job ID" });
         }
 
         const job = await Job.findById(id).select('description');

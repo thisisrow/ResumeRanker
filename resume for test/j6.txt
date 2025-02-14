@@ -1,0 +1,2 @@
+Name J6 
+Resume Summary: "Analytical and results-driven Data Analyst with a strong background in gathering, cleaning, and interpreting complex datasets to support business strategies. Skilled in SQL, Python, Excel, and data visualization tools like Power BI and Tableau. Experienced in identifying trends, creating dashboards, and providing actionable insights to drive business decisions. Adept at collaborating with cross-functional teams to enhance data-driven decision-making and optimize processes for operational efficiency."

@@ -6,6 +6,7 @@ const jobSchema = new mongoose.Schema({
     ref: "Recruiter",
     required: true,
   },
+  company_name: { type: String, required: true },
   title: { type: String, required: true },
   description: { type: String, required: true },
   created_at: { type: Date, default: Date.now },
