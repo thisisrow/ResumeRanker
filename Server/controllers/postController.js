@@ -11,7 +11,8 @@ exports.getAllPosts = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-//get only recruiter post
+
+//get only recruiter posts
 exports.getAllRecruiterPosts = async (req, res) => {
     const { id } = req.params;
     try{
@@ -20,7 +21,7 @@ exports.getAllRecruiterPosts = async (req, res) => {
     }catch(error){
         res.status(500).json({message: error.message});
     }
-  };
+};
 
 // Create a new post with recruiter validation
 exports.createPost = async (req, res) => {
@@ -44,10 +45,10 @@ exports.createPost = async (req, res) => {
       console.error("Error creating post:", error);
       res.status(500).json({ message: "Failed to create post" });
     }
-  };
+};
   
-  // Update a post with ID validation
-  exports.updatePost = async (req, res) => {
+// Update a post with ID validation
+exports.updatePost = async (req, res) => {
     const { id } = req.params;
     const { title, description } = req.body;
   
@@ -71,10 +72,10 @@ exports.createPost = async (req, res) => {
       console.error("Error updating post:", error);
       res.status(500).json({ message: "Failed to update post" });
     }
-  };
+};
   
-  // Delete a post with ID validation
-  exports.deletePost = async (req, res) => {
+// Delete a post with ID validation
+exports.deletePost = async (req, res) => {
     const { id } = req.params;
   
     try {
@@ -92,4 +93,26 @@ exports.createPost = async (req, res) => {
       console.error("Error deleting post:", error);
       res.status(500).json({ message: "Failed to delete post" });
     }
-  };
+};
+
+// Get post description by ID
+exports.getPostDescription = async (req, res) => {
+    const { id } = req.params;
+    
+    try {
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ message: "Invalid post ID" });
+        }
+
+        const post = await Post.findById(id).select('description');
+        
+        if (!post) {
+            return res.status(404).json({ message: "Post not found" });
+        }
+
+        res.status(200).json({ description: post.description });
+    } catch (error) {
+        console.error("Error fetching post description:", error);
+        res.status(500).json({ message: "Failed to fetch post description" });
+    }
+};

@@ -27,7 +27,7 @@ app.use("/uploads", express.static("uploads"));
 app.use("/api/recruiter", recruiterRoutes);
 app.use("/api/jobseeker", jobseekerRoutes);
 app.use("/api/post", postRoutes);
-app.use("/api/application",applicationRoutes);
+app.use("/api/application", applicationRoutes);
 app.use("/uploads", express.static("uploads"));
 
 //PORT

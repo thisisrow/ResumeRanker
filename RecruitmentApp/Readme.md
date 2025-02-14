@@ -52,6 +52,7 @@ Recruiter Flow
    - See a list of applicants for each job.
 
 3. Shortlist Candidates
+   - Navigate to the "Resume Review" screen.
    - Resumes are ranked using Google Gemini API.
    - Recruiters see a list of sorted applicants.
    - Can accept or reject applications.
@@ -65,11 +66,10 @@ Job Seeker Flow
 2. Apply for a Job
 
    - Select a job and submit an application.
-   - Upload a resume (stored in cloudinary Storage).
+   - Upload a resume .
 
 3. Resume Processing
-   - Extracted text from resume is stored in cloudinary.
-   - Processed using Google Gemini API for ranking.
+   - Extracted text from resume and store in job seeker decription.
 
 ---
 

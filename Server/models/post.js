@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+
 const postSchema = new mongoose.Schema({
   recruiter_id: {
     type: mongoose.Schema.Types.ObjectId,
