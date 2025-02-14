@@ -1,14 +1,11 @@
 import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import AuthNavigator from './src/navigation/AuthNavigator';
-import { AuthProvider } from './src/context/AuthContext'; // If using context for authentication
+import { View, Text } from 'react-native';
 
 export default function App() {
   return (
-    <AuthProvider>
-      <NavigationContainer>
-        <AuthNavigator />
-      </NavigationContainer>
-    </AuthProvider>
+    <View>
+      <Text>Hello World</Text>
+    </View>
+
   );
 }
