@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Ranking System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        .search-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        input {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 300px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .results-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .applicant-card {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            background-color: #fff;
+        }
+
+        .score {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .error-message {
+            color: #dc3545;
+            text-align: center;
+            padding: 10px;
+            margin-top: 10px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            font-style: italic;
+            color: #666;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .accept-btn {
+            background-color: #28a745;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .reject-btn {
+            background-color: #dc3545;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .status-shortlisted {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .status-rejected {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Application Ranking System</h1>
+        <p>Enter a Job ID to view and rank applications</p>
+    </div>
+
+    <div class="search-container">
+        <input type="text" id="jobIdInput" placeholder="Enter Job ID">
+        <button id="rankButton">Rank Applications</button>
+    </div>
+
+    <div id="loading" class="loading" style="display: none;">
+        Ranking applications...
+    </div>
+
+    <div id="error-container" class="error-message"></div>
+
+    <div id="rank-container" class="results-container"></div>
+
+    <script>
+        async function updateApplicationStatus(applicationId, status) {
+            try {
+                const response = await fetch(`http://localhost:8081/api/applications/status/${applicationId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ status })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to update status');
+                }
+
+                // If status is rejected, hide the application card
+                if (status === 'rejected') {
+                    const card = document.querySelector(`[data-application-id="${applicationId}"]`);
+                    if (card) {
+                        card.classList.add('hidden');
+                    }
+                }
+
+                // Update the status display
+                const statusElement = document.querySelector(`#status-${applicationId}`);
+                if (statusElement) {
+                    statusElement.textContent = status;
+                    statusElement.className = `status-${status}`;
+                }
+
+                // Disable buttons after action
+                const buttons = document.querySelectorAll(`[data-application-id="${applicationId}"] button`);
+                buttons.forEach(button => button.disabled = true);
+
+            } catch (error) {
+                console.error('Error updating status:', error);
+                alert('Failed to update application status');
+            }
+        }
+
+        document.getElementById('rankButton').addEventListener('click', async function() {
+            const jobId = document.getElementById('jobIdInput').value.trim();
+            const loadingDiv = document.getElementById('loading');
+            const errorContainer = document.getElementById('error-container');
+            const rankContainer = document.getElementById('rank-container');
+
+            if (!jobId) {
+                errorContainer.textContent = 'Please enter a Job ID';
+                return;
+            }
+
+            try {
+                loadingDiv.style.display = 'block';
+                errorContainer.textContent = '';
+                rankContainer.innerHTML = '';
+
+                const response = await fetch(`http://localhost:8081/api/applications/rank/${jobId}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'Failed to rank applications');
+                }
+
+                if (data.ranked_applications && data.ranked_applications.length > 0) {
+                    const applicationsHtml = data.ranked_applications
+                        .filter(app => app.status !== 'rejected') // Filter out rejected applications
+                        .map((app, index) => `
+                            <div class="applicant-card ${app.status === 'rejected' ? 'hidden' : ''}" 
+                                 data-application-id="${app.application_id}">
+                                <h3>Rank #${index + 1}</h3>
+                                <p><strong>Name:</strong> ${app.job_seeker.name}</p>
+                                <p><strong>Email:</strong> ${app.job_seeker.email}</p>
+                                <p><strong>Skills:</strong> ${app.job_seeker.skills.join(', ') || 'Not specified'}</p>
+                                <p><strong>Experience:</strong> ${app.job_seeker.experience || 'Not specified'}</p>
+                                <p><strong>Education:</strong> ${app.job_seeker.education || 'Not specified'}</p>
+                                <p class="score">Match Score: ${app.score}%</p>
+                                <p><strong>Status:</strong> 
+                                    <span id="status-${app.application_id}" 
+                                          class="status-${app.status}">
+                                        ${app.status}
+                                    </span>
+                                </p>
+                                <p><strong>Applied:</strong> ${new Date(app.created_at).toLocaleDateString()}</p>
+                                
+                                <div class="action-buttons">
+                                    <button class="accept-btn" 
+                                            onclick="updateApplicationStatus('${app.application_id}', 'shortlisted')"
+                                            ${app.status !== 'applied' ? 'disabled' : ''}>
+                                        Shortlist
+                                    </button>
+                                    <button class="reject-btn" 
+                                            onclick="updateApplicationStatus('${app.application_id}', 'rejected')"
+                                            ${app.status !== 'applied' ? 'disabled' : ''}>
+                                        Reject
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('');
+
+                    rankContainer.innerHTML = `
+                        <h2>Ranked Applications (${data.ranked_applications.length})</h2>
+                        ${applicationsHtml}
+                    `;
+                } else {
+                    rankContainer.innerHTML = '<p>No applications found for this job.</p>';
+                }
+            } catch (error) {
+                errorContainer.textContent = error.message;
+            } finally {
+                loadingDiv.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

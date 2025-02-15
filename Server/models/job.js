@@ -9,8 +9,12 @@ const jobSchema = new mongoose.Schema({
   company_name: { type: String, required: true },
   title: { type: String, required: true },
   description: { type: String, required: true },
+  required_skills: {
+    type: [String],
+    default: []
+  },
   created_at: { type: Date, default: Date.now },
-});
+}, { timestamps: true });
 
 const Job = mongoose.model("Job", jobSchema);
 module.exports = Job;

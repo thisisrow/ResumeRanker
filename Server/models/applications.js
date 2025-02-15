@@ -6,6 +6,15 @@ const applicationSchema = new mongoose.Schema({
   resume_url: { type: String, required: true },
   status: { type: String, enum: ["applied", "shortlisted", "rejected"], default: "applied" },
   rank: { type: Number, default: 0 },
+  
+  rank_score: {
+    type: Number,
+    default: 0
+  },
+  rank_position: {
+    type: Number,
+    default: 0
+  },
   created_at: { type: Date, default: Date.now },
 });
 

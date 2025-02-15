@@ -1,4 +1,11 @@
 const Application = require("../models/applications");
+const { OpenAI } = require('openai');
+const Job = require('../models/job'); // You'll need to import your Job model
+
+// Initialize OpenAI
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
 
 // Apply for a Job
 const applyForJob = async (req, res) => {
@@ -99,10 +106,127 @@ const deleteApplication = async (req, res) => {
   }
 };
 
+// Helper function for basic scoring without AI
+const calculateBasicScore = (job, jobSeeker) => {
+  let score = 0;
+  const requiredSkills = job.required_skills || [];
+  const candidateSkills = jobSeeker.skills || [];
+  
+  // Handle case where there are no required skills
+  if (requiredSkills.length === 0) {
+    return 50; // Return a default middle score
+  }
+  
+  // Calculate skill match percentage
+  const matchedSkills = candidateSkills.filter(skill => 
+    requiredSkills.some(reqSkill => 
+      reqSkill.toLowerCase().includes(skill.toLowerCase()) ||
+      skill.toLowerCase().includes(reqSkill.toLowerCase())
+    )
+  );
+  
+  // Calculate score based on matched skills
+  score = (matchedSkills.length / requiredSkills.length) * 100;
+  
+  // Ensure score is a valid number
+  if (isNaN(score)) {
+    return 0;
+  }
+  
+  // Cap the score at 100 and ensure it's an integer
+  return Math.min(Math.round(score), 100);
+};
+
+// Modified rankApplications function to handle edge cases
+const rankApplications = async (req, res) => {
+  try {
+    const { job_id } = req.params;
+
+    const job = await Job.findById(job_id);
+    console.log('Job details:', job);
+
+    if (!job) {
+      return res.status(404).json({ message: "Job not found." });
+    }
+
+    const applications = await Application.find({ job_id })
+      .populate("job_seeker_id", "name email skills experience education")
+      .select("resume_url status created_at");
+
+    if (applications.length === 0) {
+      return res.status(404).json({ message: "No applications found for this job." });
+    }
+
+    const rankedApplications = applications.map(application => {
+      const jobSeeker = application.job_seeker_id;
+      // Ensure jobSeeker exists before calculating score
+      if (!jobSeeker) {
+        return {
+          application_id: application._id,
+          score: 0,
+          status: application.status,
+          resume_url: application.resume_url,
+          created_at: application.created_at
+        };
+      }
+
+      const score = calculateBasicScore(job, jobSeeker);
+
+      return {
+        application_id: application._id,
+        job_seeker: {
+          name: jobSeeker.name,
+          email: jobSeeker.email,
+          skills: jobSeeker.skills || [],
+          experience: jobSeeker.experience || 'Not specified',
+          education: jobSeeker.education || 'Not specified'
+        },
+        score,
+        status: application.status,
+        resume_url: application.resume_url,
+        created_at: application.created_at
+      };
+    });
+
+    // Sort by score in descending order
+    rankedApplications.sort((a, b) => b.score - a.score);
+
+    // Update applications with rankings
+    const updatePromises = rankedApplications.map((app, index) => {
+      // Ensure score is a valid number before updating
+      const score = typeof app.score === 'number' && !isNaN(app.score) ? app.score : 0;
+      
+      return Application.findByIdAndUpdate(
+        app.application_id,
+        { 
+          rank_score: score,
+          rank_position: index + 1 
+        },
+        { new: true }
+      );
+    });
+
+    await Promise.all(updatePromises);
+
+    res.status(200).json({
+      message: "Applications ranked successfully",
+      ranked_applications: rankedApplications
+    });
+
+  } catch (error) {
+    console.error('Ranking error:', error);
+    res.status(500).json({ 
+      message: "Error ranking applications", 
+      error: error.message 
+    });
+  }
+};
+
 module.exports = {
   applyForJob,
   getApplicationsByJob,
   getApplicationsByJobSeeker,
   updateApplicationStatus,
   deleteApplication,
+  rankApplications,
 };

@@ -6,7 +6,7 @@ const connectDB = require("./config/db");
 const recruiterRoutes = require("./routes/recruiterRoutes");
 const jobseekerRoutes = require("./routes/jobseekerRoutes");
 const jobRoutes = require("./routes/jobRoutes");
-const applicationRoutes =require("./routes/applicationRoutes")
+const applicationRoutes = require("./routes/applicationRoutes");
 
 //DOTENV
 dotenv.config();
@@ -27,7 +27,7 @@ app.use("/uploads", express.static("uploads"));
 app.use("/api/recruiter", recruiterRoutes);
 app.use("/api/jobseeker", jobseekerRoutes);
 app.use("/api/job", jobRoutes);
-app.use("/api/application", applicationRoutes);
+app.use("/api/applications", applicationRoutes);
 app.use("/uploads", express.static("uploads"));
 
 //PORT
