@@ -1,11 +1,5 @@
 const Application = require("../models/applications");
-const { OpenAI } = require('openai');
 const Job = require('../models/job'); // You'll need to import your Job model
-
-// Initialize OpenAI
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
 
 // Apply for a Job
 const applyForJob = async (req, res) => {
