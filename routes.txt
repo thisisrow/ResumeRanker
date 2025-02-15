@@ -1,0 +1,29 @@
+# Recruiter Routes (/api/recruiter)
+POST    /api/recruiter/register          - Register a new recruiter
+POST    /api/recruiter/login             - Login for recruiters
+
+# Job Seeker Routes (/api/jobseeker)
+POST    /api/jobseeker/register          - Register a new job seeker
+POST    /api/jobseeker/login             - Login for job seekers
+POST    /api/jobseeker/uploadResume/:userId  - Upload resume for a job seeker
+GET     /api/jobseeker/getResume/:userId     - Get resume for a job seeker
+GET     /api/jobseeker/getDescription/:userId - Get job seeker description
+
+# Job Routes (/api/job)
+GET     /api/job/getAllJobs              - Get all jobs
+GET     /api/job/getAllRecruiterJobs/:id - Get all jobs for a specific recruiter
+GET     /api/job/description/:id         - Get job description
+POST    /api/job/createJob              - Create a new job
+PUT     /api/job/updateJob/:id          - Update a job
+DELETE  /api/job/deleteJob/:id          - Delete a job
+
+# Application Routes (/api/applications)
+POST    /api/applications/apply          - Submit a job application
+GET     /api/applications/job/:job_id    - Get all applications for a specific job
+GET     /api/applications/seeker/:job_seeker_id - Get applications for a specific job seeker
+PATCH   /api/applications/status/:application_id - Update application status
+DELETE  /api/applications/:application_id - Delete an application
+GET     /api/applications/rank/:job_id   - Get ranked applications for a job
+
+# File Handling Routes
+GET     /uploads/*                       - Serve uploaded files (resumes)
