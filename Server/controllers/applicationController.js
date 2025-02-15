@@ -143,7 +143,6 @@ const rankApplications = async (req, res) => {
     const { job_id } = req.params;
 
     const job = await Job.findById(job_id);
-    console.log('Job details:', job);
 
     if (!job) {
       return res.status(404).json({ message: "Job not found." });
@@ -214,7 +213,6 @@ const rankApplications = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Ranking error:', error);
     res.status(500).json({ 
       message: "Error ranking applications", 
       error: error.message 
