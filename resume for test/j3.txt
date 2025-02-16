@@ -1,3 +1,0 @@
-Name J3 
-Resume Summary: "Passionate FullStack Developer with expertise in JavaScript frameworks (React, Node.js) and a strong understanding of back-end architecture, including RESTful API development and database management using MongoDB and MySQL. Extensive experience working with Agile teams to build full-fledged web applications that are fast, secure, and highly scalable. Highly proficient in version control (Git), continuous integration (CI/CD), and working with cloud platforms like AWS and Azure. Strong communicator and problem-solver focused on delivering high-quality solutions."
-

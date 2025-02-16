@@ -1,2 +1,0 @@
-Name J2 
-Resume Summary: "Experienced FullStack Developer with a focus on building dynamic and high-performance web applications. Proficient in front-end technologies like React and Angular, along with strong back-end experience using Node.js and Express. Skilled in database management with MongoDB and PostgreSQL, and experienced in deploying applications using AWS and Docker. Known for writing clean, maintainable code, collaborating with cross-functional teams, and implementing best practices for scalability, security, and performance."

@@ -1,2 +1,0 @@
-Name J1 
-Resume Summary: "A highly motivated FullStack Developer with over 3 years of experience in designing and developing responsive, scalable, and feature-rich web applications. Expertise in JavaScript, React, Node.js, MongoDB, and cloud technologies (AWS). Adept at working across the full development lifecycle, including gathering requirements, system design, coding, testing, and deployment. Passionate about creating intuitive user interfaces and maintaining robust back-end systems to ensure application performance and security."

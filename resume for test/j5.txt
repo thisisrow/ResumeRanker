@@ -1,2 +1,0 @@
-Name J5
-Resume Summary: "Detail-oriented Data Analyst with extensive experience in collecting, processing, and analyzing large datasets. Proficient in SQL, Excel, Tableau, and data visualization. Passionate about transforming data into actionable insights to help businesses make informed decisions and drive growth."
