@@ -8,7 +8,15 @@ const multer = require("multer");
 const pdfParse = require("pdf-parse");
 const fs = require("fs");
 const path = require("path");
+const cloudinary = require('cloudinary').v2;
 dotenv.config();
+
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 // User Registration
 exports.registerUser = async (req, res) => {
@@ -64,113 +72,107 @@ exports.loginUser = async (req, res) => {
     }
 };
 
-// Set storage options for multer
+// Set up multer for temporary storage
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    // Specify the folder where we want to store the uploaded resumes
-    const uploadDir = "./uploads";
-
-    // Make sure the folder exists, create it if not
+    const uploadDir = "./temp";
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
-
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
-    // Ensure the file is a PDF
     if (file.mimetype !== "application/pdf") {
       return cb(new Error("Only PDF files are allowed."));
     }
-
-    // Set the filename with user ID and a timestamp to avoid conflicts
-    const fileName = `${req.params.userId}_${Date.now()}${path.extname(
-      file.originalname
-    )}`;
+    const fileName = `${req.params.userId}_${Date.now()}${path.extname(file.originalname)}`;
     cb(null, fileName);
   },
 });
 
-// Set up multer with the storage and file size limits
 const upload = multer({
   storage: storage,
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
-}).single("resume"); // 'resume' is the field name in the form
+}).single("resume");
 
-// Upload resume function
+// Rename uploadResumeByCloudinary to uploadResume
 exports.uploadResume = (req, res) => {
-  // Use multer to handle the file upload
   upload(req, res, async (err) => {
     if (err) {
       return res.status(400).json({ error: err.message });
     }
 
     try {
-      // Get the user from the database
       const user = await JobSeeker.findById(req.params.userId);
-
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
 
-      // Extract text from the uploaded PDF
-      const resumePath = path.join(
-        __dirname,
-        "..",
-        "uploads",
-        req.file.filename
-      );
+      const resumePath = path.join(__dirname, "..", "temp", req.file.filename);
 
-      // Read the PDF and extract text
+      // Upload to Cloudinary
+      const cloudinaryResponse = await cloudinary.uploader.upload(resumePath, {
+        folder: 'resumes',
+        resource_type: 'auto',
+        public_id: `resume_${req.params.userId}_${Date.now()}`,
+        format: 'pdf'
+      });
+
+      // Extract text from PDF
       const dataBuffer = fs.readFileSync(resumePath);
       const pdfData = await pdfParse(dataBuffer);
 
-      // Store the extracted text into the user's description
-      user.description = pdfData.text; // Store extracted text in description field
+      // Update user document with new data
+      const updatedUser = await JobSeeker.findByIdAndUpdate(
+        req.params.userId,
+        {
+          $set: {
+            resume: cloudinaryResponse.secure_url,
+            description: pdfData.text
+          }
+        },
+        { new: true } // Return the updated document
+      );
 
-      // Update the user's resume field with the file path
-      user.resume = `/uploads/${req.file.filename}`;
+      if (!updatedUser) {
+        throw new Error('Failed to update user document');
+      }
 
-      // Save the updated user document
-      await user.save();
+      // Delete temporary file
+      fs.unlinkSync(resumePath);
 
       res.status(200).json({
-        message: "Resume uploaded and description extracted successfully",
-        resumeUrl: user.resume,
-        description: user.description, // Send back the extracted text
+        message: "Resume uploaded successfully",
+        resumeUrl: updatedUser.resume,
+        description: updatedUser.description,
+        cloudinaryDetails: {
+          publicId: cloudinaryResponse.public_id,
+          url: cloudinaryResponse.secure_url,
+          format: cloudinaryResponse.format,
+          size: cloudinaryResponse.bytes
+        }
       });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: "Server error while uploading resume" });
+      console.error('Upload error:', error);
+      res.status(500).json({ 
+        error: "Server error while uploading resume",
+        details: error.message 
+      });
     }
   });
 };
 
-// Controller to serve the resume (PDF file)
+// Update getResume to properly return the URL
 exports.getResume = async (req, res) => {
   try {
-    const userId = req.params.userId;
-    const user = await JobSeeker.findById(userId);
-
+    const user = await JobSeeker.findById(req.params.userId);
     if (!user || !user.resume) {
       return res.status(404).json({ error: "Resume not found" });
     }
-
-    // The resume URL is stored in the 'resume' field in the user document
-    const resumePath = path.join(__dirname, "..", user.resume); // Build absolute path
-
-    // Check if the file exists
-    if (!fs.existsSync(resumePath)) {
-      return res
-        .status(404)
-        .json({ error: "Resume file not found on the server" });
-    }
-
-    // Send the file as response
-    res.sendFile(resumePath);
+    res.status(200).json({ resumeUrl: user.resume });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Server error while retrieving resume" });
+    console.error('GetResume error:', error);
+    res.status(500).json({ error: "Server error while retrieving resume URL" });
   }
 };
 

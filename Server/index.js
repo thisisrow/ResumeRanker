@@ -22,14 +22,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(morgan("dev"));
-// ✅ Make uploaded resumes publicly accessible
-app.use("/uploads", express.static("uploads"));
 //ROUTES
 app.use("/api/recruiter", recruiterRoutes);
 app.use("/api/jobseeker", jobseekerRoutes);
 app.use("/api/job", jobRoutes);
 app.use("/api/applications", applicationRoutes);
-app.use("/uploads", express.static("uploads"));
 
 //PORT
 const PORT = process.env.PORT || 3000;

@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const connectDB = async () => {
-    const url='mongodb://127.0.0.1:27017/resume';
+    const url='mongodb+srv://prathameshmishra2020:%23dpmishra%3D1%2Bmongodb@cluster0.rfqwr.mongodb.net/resume?retryWrites=true&w=majority&appName=Cluster0';
   try {
     await mongoose.connect(url);
     console.log('MongoDB connected successfully',url);

@@ -4,79 +4,214 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Upload Resume</title>
+  <style>
+    .upload-container {
+      margin: 20px;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    
+    .upload-option {
+      margin-bottom: 20px;
+    }
+    
+    .button {
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    .button:hover {
+      background-color: #0056b3;
+    }
+    
+    .error {
+      color: red;
+      margin-top: 10px;
+    }
+    
+    .success {
+      color: green;
+      margin-top: 10px;
+    }
+
+    #pdf-viewer {
+      border: 1px solid #ccc;
+      margin-top: 20px;
+    }
+
+    .description-container {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #f8f9fa;
+      border-radius: 4px;
+    }
+
+    .user-id-container {
+      margin-bottom: 20px;
+      padding: 15px;
+      background-color: #e9ecef;
+      border-radius: 4px;
+    }
+
+    .user-id-input {
+      padding: 8px;
+      width: 300px;
+      margin-right: 10px;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+    }
+
+    .pdf-container {
+      position: relative;
+      width: 100%;
+      min-height: 800px;
+    }
+    
+    #pdf-fallback {
+      padding: 20px;
+      text-align: center;
+      background-color: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+    }
+  </style>
 </head>
 <body>
-  <form id="upload-form">
-    <input type="file" id="resume" name="resume" accept=".pdf" required />
-    <button type="submit">Upload Resume</button>
-  </form>
-  <h1>Resume</h1>
+  <div class="user-id-container">
+    <h2>User ID</h2>
+    <input type="text" id="userId" class="user-id-input" placeholder="Enter User ID" required>
+    <button onclick="loadUserData()" class="button">Load User Data</button>
+  </div>
 
-  <!-- Use iframe to display PDF -->
-  <iframe id="pdf-viewer" width="600" height="800"></iframe>
-  
-  <h1>Extract text </h1>
-  <p id="dec"></p>
+  <div class="upload-container">
+    <h2>Resume Upload</h2>
+    <div class="upload-option">
+      <form id="upload-form">
+        <input type="file" id="resume" name="resume" accept=".pdf" required />
+        <button type="submit" class="button">Upload Resume</button>
+      </form>
+      <div id="upload-message"></div>
+    </div>
+  </div>
+
+  <div class="upload-container">
+    <h2>Resume Preview</h2>
+    <div class="pdf-container">
+      <iframe id="pdf-viewer" width="100%" height="800"></iframe>
+      <div id="pdf-fallback" style="display: none;">
+        <p>PDF cannot be displayed directly. <a id="pdf-download-link" href="" target="_blank">Click here to view/download the PDF</a></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="description-container">
+    <h2>Extracted Text</h2>
+    <p id="dec"></p>
+  </div>
+
   <script>
-    const form = document.getElementById('upload-form');
-    form.addEventListener('submit', async (event) => {
-      event.preventDefault();
+    let currentUserId = '';
 
-      const userId = '67afa20a260591894220092c';  // User ID you want to upload the resume for
-      const resumeFile = document.getElementById('resume').files[0];
-      
+    async function loadUserData() {
+      currentUserId = document.getElementById('userId').value.trim();
+      if (!currentUserId) {
+        alert('Please enter a User ID');
+        return;
+      }
+      await updatePreviewAndDescription();
+    }
+
+    // Single Upload Form
+    const uploadForm = document.getElementById('upload-form');
+    uploadForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (!currentUserId) {
+        alert('Please enter and load a User ID first');
+        return;
+      }
+
+      const messageDiv = document.getElementById('upload-message');
       const formData = new FormData();
-      formData.append('resume', resumeFile);
+      formData.append('resume', document.getElementById('resume').files[0]);
 
       try {
-        const response = await fetch(`http://localhost:8081/api/jobseeker/uploadResume/67afa20a260591894220092c`, {
+        const response = await fetch(`http://localhost:8081/api/jobseeker/uploadResume/${currentUserId}`, {
           method: 'POST',
           body: formData
         });
 
         const result = await response.json();
         if (response.ok) {
-          alert('Resume uploaded successfully!');
+          const pdfUrl = result.resumeUrl;
+          messageDiv.innerHTML = `
+            <p class="success">Resume uploaded successfully!</p>
+            <p>URL: <a href="${pdfUrl}" target="_blank">View PDF</a></p>
+            <p>Size: ${Math.round(result.cloudinaryDetails.size / 1024)} KB</p>
+          `;
+          
+          updatePDFViewer(pdfUrl);
+          document.getElementById('dec').textContent = result.description;
         } else {
-          alert('Error: ' + result.message);
+          messageDiv.innerHTML = `<p class="error">Error: ${result.error}</p>`;
         }
       } catch (error) {
-        alert('Error uploading resume: ' + error.message);
+        messageDiv.innerHTML = `<p class="error">Error uploading resume: ${error.message}</p>`;
       }
     });
-  </script>
 
-<script>
-    const userId = '67afa20a260591894220092c'; // Replace with the user ID
-    const resumeUrl = `http://localhost:8081/api/jobseeker/getResume/67afa20a260591894220092c`;
-
-    const iframe = document.getElementById('pdf-viewer');
-    iframe.src = resumeUrl; // Set the src to the API endpoint serving the PDF
-
-
-  </script>
-<script>
-    async function getDescription(userId) {
-      try {
-        // Call the backend to get the description
-        const response = await fetch(`http://localhost:8081/api/jobseeker/getDescription/67afa20a260591894220092c`);
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch description');
+    function updatePDFViewer(pdfUrl) {
+      const viewer = document.getElementById('pdf-viewer');
+      const fallback = document.getElementById('pdf-fallback');
+      const downloadLink = document.getElementById('pdf-download-link');
+      
+      // Update download link
+      downloadLink.href = pdfUrl;
+      
+      // Try to load PDF in iframe
+      viewer.src = pdfUrl;
+      
+      // Handle iframe load error
+      viewer.onerror = () => {
+        viewer.style.display = 'none';
+        fallback.style.display = 'block';
+      };
+      
+      // Check if PDF loaded successfully
+      viewer.onload = () => {
+        if (viewer.contentDocument && viewer.contentDocument.body.innerHTML === '') {
+          viewer.style.display = 'none';
+          fallback.style.display = 'block';
+        } else {
+          viewer.style.display = 'block';
+          fallback.style.display = 'none';
         }
-
-        const data = await response.json();
-        const description = data.description || 'No description available';
-
-        // Update the text content of the <p> tag
-        document.getElementById('dec').textContent = description;
-      } catch (error) {
-        console.error(error);
-        document.getElementById('dec').textContent = 'Error fetching description';
-      }
+      };
     }
 
-    getDescription(userId);
+    async function updatePreviewAndDescription() {
+      if (!currentUserId) return;
+
+      try {
+        // Get the PDF URL
+        const pdfUrl = `http://localhost:8081/api/jobseeker/getResume/${currentUserId}`;
+        updatePDFViewer(pdfUrl);
+
+        // Update description
+        const response = await fetch(`http://localhost:8081/api/jobseeker/getDescription/${currentUserId}`);
+        if (response.ok) {
+          const data = await response.json();
+          document.getElementById('dec').textContent = data.description || 'No description available';
+        }
+      } catch (error) {
+        console.error('Error updating preview:', error);
+        document.getElementById('dec').textContent = 'Error loading user data';
+      }
+    }
   </script>
 </body>
 </html>
