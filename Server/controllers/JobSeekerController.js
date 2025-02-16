@@ -65,6 +65,9 @@ exports.loginUser = async (req, res) => {
                 email: user.email,
                 resume_url: user.resume_url,
                 description: user.description,
+                skills: user.skills,
+                experience: user.experience,
+                education: user.education,
             }
          });
     } catch (error) {
@@ -198,4 +201,53 @@ exports.getDescription = async (req, res) => {
       .status(500)
       .json({ error: "Server error while retrieving description" });
   }
+};
+
+// Update user profile
+exports.updateProfile = async (req, res) => {
+    const { userId } = req.params;
+    const { name, skills, experience, education, description } = req.body;
+
+    try {
+        // Find user and update
+        const updatedUser = await JobSeeker.findByIdAndUpdate(
+            userId,
+            {
+                $set: {
+                    name: name,
+                    skills: skills,
+                    experience: experience,
+                    education: education,
+                    description: description
+                }
+            },
+            { new: true }
+        );
+
+        if (!updatedUser) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Return same format as login response
+        res.status(200).json({ 
+            message: 'Profile updated successfully',
+            user: {
+                _id: updatedUser._id,
+                name: updatedUser.name,
+                email: updatedUser.email,
+                resume_url: updatedUser.resume,
+                description: updatedUser.description,
+                skills: updatedUser.skills,
+                experience: updatedUser.experience,
+                education: updatedUser.education,
+            }
+        });
+
+    } catch (error) {
+        console.error('Update profile error:', error);
+        res.status(500).json({ 
+            error: 'Error updating profile',
+            details: error.message 
+        });
+    }
 };
