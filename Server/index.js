@@ -23,6 +23,9 @@ app.use(cors());
 app.use(express.json());
 app.use(morgan("dev"));
 //ROUTES
+app.get("/", (req, res) => {
+  res.send("Welcome to the Job Portal API");
+});
 app.use("/api/recruiter", recruiterRoutes);
 app.use("/api/jobseeker", jobseekerRoutes);
 app.use("/api/job", jobRoutes);
