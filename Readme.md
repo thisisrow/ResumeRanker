@@ -126,7 +126,7 @@ Folder Structure
 ```
 resume-ranker/
 ├── src/
-│   ├── components/                Reusable UI components (buttons, inputs, etc.)
+│   ├── components/                Reusable UI components (buttons, inputs,etc.)
 │   ├── screens/                   App screens categorized by role
 │   │   ├── Auth/                  Authentication screens
 │   │   │   ├── LoginScreen.js
@@ -142,11 +142,12 @@ resume-ranker/
 │   ├── navigation/                 Navigation setup
 │   │   ├── AuthNavigator.js        Handles authentication screens
 │   │   ├── AppNavigator.js         Main app navigation
-│   │   ├── JobSeekerNavigator.js   Handles navigation for job seekers
+│   │   ├── JobSeekerNavigator.js   Handles navigation for job seekers(bottom tab navigator)
+│   │   ├── RecruiterNavigator.js   Handles navigation for recruiters(bottom tab navigator)
 │   ├── context/                    Global state management
 │   │   ├── AuthContext.js          Manage authentication state
 │   │   ├── JobContext.js           Handle job-related state
-│   ├── App.js                      Root entry point
+├── App.js                      Root entry point
 ├── package.json                    Dependencies and scripts
 ```
 
